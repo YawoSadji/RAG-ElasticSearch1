@@ -19,4 +19,16 @@ Answer:
 
 loader = TextLoader(os.getenv("documentpath"))
 documents = loader.load()
-print(documents)
+# print(documents) #Printed to check if the document is loaded correctly
+text_splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=0)
+texts = text_splitter.split_documents(documents)
+# print(texts) #Printed to check if the document is split correctly
+embeddings = OpenAIEmbeddings()
+vectordb = ElasticsearchStore.from_documents(
+    texts,
+    embedding=embeddings,
+    index_name="testdocuments1",
+    es_cloud_id=os.getenv("es_cloud_id"),
+    es_api_key=os.getenv("es_api_key"),
+    index_name="documents"
+    )
