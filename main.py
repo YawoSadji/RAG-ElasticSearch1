@@ -30,5 +30,4 @@ vectordb = ElasticsearchStore.from_documents(
     index_name="testdocuments1",
     es_cloud_id=os.getenv("es_cloud_id"),
     es_api_key=os.getenv("es_api_key"),
-    index_name="documents"
     )
