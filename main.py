@@ -24,10 +24,27 @@ text_splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=0)
 texts = text_splitter.split_documents(documents)
 # print(texts) #Printed to check if the document is split correctly
 embeddings = OpenAIEmbeddings()
-vectordb = ElasticsearchStore.from_documents(
-    texts,
+
+# Create the vector store then comment it out to avoid duplicate entries
+# vectordb = ElasticsearchStore.from_documents(
+#     texts,
+#     embedding=embeddings,
+#     index_name="testdocuments1",
+#     es_cloud_id=os.getenv("es_cloud_id"),
+#     es_api_key=os.getenv("es_api_key"),
+#     )
+
+# Use this for subsequent runs to avoid duplicate entries
+vectordb = ElasticsearchStore(
     embedding=embeddings,
     index_name="testdocuments1",
     es_cloud_id=os.getenv("es_cloud_id"),
     es_api_key=os.getenv("es_api_key"),
     )
+retriever = vectordb.as_retriever(search_type="similarity", search_kwargs={"k":3})
+llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo", max_retries=3)
+prompt = ChatPromptTemplate.from_template(template)
+chain = prompt | retriever | llm | StrOutputParser().with_prefix("Answer: ")
+question = "What is RAG?"
+response = chain.invoke({"Question": question})
+print(response) # Print the final answer
