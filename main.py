@@ -12,7 +12,7 @@ template="""You are an assistant for question answering.
 Use the following pieces of retrieved context to answer the question at the end.
 If you don't know the answer, just say that you don't know.
 Use five sentences minimum to answer the question and keep the answer concise.
-Question: {Question}
+Question: {question}
 Context: {context}
 Answer:
 """
@@ -44,7 +44,12 @@ vectordb = ElasticsearchStore(
 retriever = vectordb.as_retriever(search_type="similarity", search_kwargs={"k":3})
 llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo", max_retries=3)
 prompt = ChatPromptTemplate.from_template(template)
-chain = prompt | retriever | llm | StrOutputParser().with_prefix("Answer: ")
-question = "What is RAG?"
-response = chain.invoke({"Question": question})
-print(response) # Print the final answer
+chain = (
+    {"context": retriever, "question": RunnablePassthrough()}
+    | prompt
+    | llm
+    | StrOutputParser()
+)
+question = "What is SOD?"
+response = chain.invoke(question)
+print(response)
